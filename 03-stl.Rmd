@@ -1,0 +1,135 @@
+# Standart Template Library - zbiór struktur danych.
+
+C++ udostępnia bibliotekę zawierającą wiele użytecznych struktur danych, z których nie wszystkie są dostępne w R. Jedną z podstawowych struktur jest zbiór (`set`), służący do przechowywania unikalnych elementóW w określonym porządku. Główną zaletą zbioru jest to, że sprawdzanie czy element istnieje w zbiorze jest zawsze operacją o złożoności log(n).
+
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <set>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+//[[Rcpp::export]]
+std::set<double> cset(Rcpp::NumericVector x) {
+  // Tworzenie obiektu set przy pomocy iteratorów
+  // o iteratorach za moment
+  std::set<double> xset(x.begin(), x.end());
+  return xset; 
+  // Rcpp całkiem dobrze sobie radzi ze strukturami STL i w większości przypadków
+  // jest w stanie dokonać sensownej konwersji.
+}
+
+```
+
+Kolejnym użyteczną strukturą jest `std::vector`, który jest w zasadzie strukturą bardzo podobną do wektora znanego z R.
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <set>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+// Eksportowane funkcje mogą bez problemu przyjąć std::vector jako argument
+// Rcpp zajmie się odpowiednią konwersją. Tak samo std::vector zostaje 
+// przeważnie zwrócony jako eRowy wektor.
+//[[Rcpp::export]]
+std::vector<double> cvector(std::vector<double> x) {
+  return x;
+}
+
+```
+
+Tutaj należy zwrócić uwagę na to skąd w ogóle nazwa `Standard Template Library` - standardowa biblioteka szablonów. Otóż mimo tego, że C++ jest językiem statycznie typowanym (przy deklaracji zmiennej trzeba podać jej typ), to pozwala na tworzenie funkcji i klas (struktur danych), których dokładny typ definiowany jest dopiero na etapie pisania kodu. To właśnie ten mechanizm został użyty w przypadku zbioru i wektora do zdefiniowania typu `double` jako ich elementu. Równie dobrze można stworzyć wektor intów (`std::vector<int>`).
+
+W przypadku struktur danych z STL, każda z nich ma pewne swoje wymagania które musi spełniać element który ma w niej zostać zawarty. Np. w przypadku `std::set`u musi istnieć zdefioniowany porządek - to znaczy elementy muszą dać się porównywać. Natomiast w przypadku `std::vector` w zasadzie nie ma żadnych wymagań, tym samym do wektora można wrzucić praktycznie wszystko - również inne wektory, albo eRowe wektory, tak jak w przykładzie poniżej. 
+ 
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+std::vector<Rcpp::NumericVector> cvector2list(Rcpp::NumericVector x) {
+  std::vector<Rcpp::NumericVector> res; // tworzenie wektora R-wektorów
+  res.push_back(x); // dodaje nowy element do wektora
+  return res;
+}
+
+```
+
+Tutaj też należy się uwaga - jeżeli zwracany wektor zawiera jakiś typ atomowy (double, int), wtedy zostanie on przekonwertowany na standardowy wektor R. Jeżeli jednak jest to bardziej złożona struktura (wektor wektorów) - wtedy zwrócona zostanie lista:
+
+```{r}
+x <- rnorm(3)
+cvector2list(x)
+```
+
+Więcej informacji na stronie http://www.cplusplus.com/reference/stl/
+
+## Iteratory
+
+Jednym z ważniejszych elementów w STL są tak zwane iteratory. Nie wchodząc zbytnio w szczegóły można je w pewnym sensie rozumieć jako operator zakresu - coś na kształt `x[1:n]`. Wiele funckji w STL zamiast określonej struktury danych, przyjmuje dwa iteratory, oznaczające zakres na którym mają operować:
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+std::vector<double> csort(std::vector<double> x) {
+  
+  std::sort(x.begin(), x.end());
+  return x;
+}
+
+//[[Rcpp::export]]
+std::vector<double> csort_n(std::vector<double> x, int n) {
+  
+  std::sort(x.begin(), x.begin() + n);
+  return x;
+}
+
+```
+
+```{r}
+x <- c(1,4,5,2)
+csort(x)
+csort_n(x, 2)
+```
+
+Iteratory dobrze sprawdzają się też w przypadku pętli for: 
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+std::vector<double> square(std::vector<double> x) {
+  
+  std::vector<double> res;
+  
+  for(auto it = x.begin(); it != x.end(); it++) {
+    res.push_back(*it * (*it));
+  }
+    
+  return res;
+}
+
+```
+
+```{r}
+x <- c(1,4,5,2)
+square(x)
+```
+
+W tym przypadku należy zwrócić uwagę, że by dostać się do wartości ukrytej w iteratorze należy użyć operatora wyłuskania `*`. Operacja `++` na iteratorze przechodzi jedynie na kolejny element. Warunkiem końca pętli jest `it != x.end()` - tutaj należy pamiętać, że `*x.end()` nie zwraca nic sensownego, bo ta wartość nie należy już do samego wektora!
+

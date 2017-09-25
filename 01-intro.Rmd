@@ -1,0 +1,29 @@
+# Rozgrzewka
+
+Pisanie kodu w Rcpp w zasadzie nie różni się niczym od tworzenia standardowego kodu w C++. Jedynie po stworzeniu pliku zawierającego potrzebne funkcje należy oznaczyć w nim te z nich które mają być widoczne z poziomu R. Do oznaczenia eksportowanych elementóW służy atrybut `//[[Rcpp::export]]`
+
+```{Rcpp, eval=FALSE}
+
+//[[Rcpp::export]]
+int cpp_sum(int x, int y) {
+  return x + y;
+}
+
+// Ta funkcja nie zostanie wyeksportowana
+int c_sum2(int x, int y) {
+  return 2*x + 2*y;
+}
+
+```
+
+Następnie przy pomocy funkcji `sourceCpp()` kod jest kompilowany i od tej pory wyeksportowane funkcje są dostępne w R:
+
+```{r}
+library(Rcpp)
+Rcpp::sourceCpp(file = "intro_1.cpp")
+
+cpp_sum(10, 11)
+# c_sum2 jest niewidoczne w R.
+```
+
+Pierwsza funkcja napisana w C++ jest gotowa do użycia w R. Teraz pora na coś ciekawszgo - struktury R w C++.

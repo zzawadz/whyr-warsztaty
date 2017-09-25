@@ -1,0 +1,26 @@
+---
+title: "Kiedy brakuje wydajności... R i C++ = Rcpp"
+author: "Zygmunt Zawadzki"
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::gitbook: default
+  bookdown::pdf_book: default
+---
+
+
+# Wprowadzenie {-}
+
+Ta mini-książka zawiera materiały na warsztaty z Rcpp przeprowadzone na konferencji Whyr.
+
+## Do kogo adresowane są te warsztaty (materiały)?
+
+R jako narzędzie dla analityka danych sprawdza się w większości przypadków - większość spraw związanych z obróbką danych można rozwiązać przy pomocy `tidyverse` (`dplyr`, `tidyr` i reszta). Jeżeli natomiast chodzi o modelowanie - masa narzędzi jest już zaimplementowana. Dla takiego (typowego) sposobu użytkowania R nie ma potrzeby uczyć się Rcpp.
+
+Jeżeli natomiast jesteś zainteresowany rozwijaniem własnych pakietów implementujących nowe metody statystyczne, lub będących interfejsami do istniejących bibliotek - wtedy C++ może być świetnym wyborem. C++ zapewnia doskonałą wydajność, często nieosiągalną dla czystego R (wiele pakietów R jest tak naprawdę napisanych w C++, np. `dplyr`), a do tego jest łatwo go spiąć z innymi językami.
+
+## Dlaczego C++?
+
+Pierwszym argumentem za C++ jest to, że naprawdę łatwo go połączyć z R. W zasadzie wsytarczy stworzyć zwykły kod C++ a Rcpp automatycznie wygeneruje iterfejs dla R i skompiluje kod.
+
+

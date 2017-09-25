@@ -1,0 +1,229 @@
+# Struktury R dostępne w C++.
+
+Główną zaletą Rcpp jest łatwość w tworzeniu przekazywania struktur R do C++ i w drugą stronę.
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+Rcpp::NumericVector square(Rcpp::NumericVector x) {
+  return x * x;
+}
+
+```
+
+```{r}
+x <- c(1,2,3)
+square(x)
+
+```
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+Rcpp::NumericMatrix matsquare(Rcpp::NumericMatrix x) {
+  
+  Rcpp::NumericMatrix y = Rcpp::clone(x);
+  
+  for(int i = 0; i < y.ncol(); i++) {
+    y.column(i) = y.column(i) * y.column(i);
+  }
+  
+  return y;
+}
+
+```
+
+```{r}
+x <- matrix(c(1:9), ncol = 3)
+matsquare(x)
+
+```
+
+# Lista
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+Rcpp::List return_list(Rcpp::NumericMatrix x) {
+  
+  Rcpp::NumericMatrix y = Rcpp::clone(x);
+  Rcpp::NumericVector beta;
+  
+  for(int i = 0; i < y.ncol(); i++) {
+    y.column(i) = y.column(i) * y.column(i);
+  }
+  
+  beta = Rcpp::rowSums(x);
+  
+  return Rcpp::List::create(
+    Rcpp::Named("beta") = beta,
+    Rcpp::Named("y") = y
+  );
+}
+
+```
+
+```{r}
+x <- matrix(c(1:9), ncol = 3)
+return_list(x)
+
+```
+
+# Zarządzanie pamięcią w R
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+void f1(Rcpp::NumericVector x) {
+  x.at(0) = 10;
+}
+
+```
+
+```{r}
+x <- c(1, 2, 3)
+f1(x)
+x
+
+y <- 1:3
+f1(y)
+y
+
+x <- c(1, 2, 3)
+y <- 1:3
+
+all.equal(x, y)
+identical(x, y)
+
+```
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+void f2(Rcpp::IntegerVector x) {
+  x.at(0) = 10;
+}
+
+```
+
+```{r}
+x <- c(1, 2, 3)
+f2(x)
+x
+
+y <- 1:3
+f2(y)
+y
+```
+
+```{r}
+x <- c(1, 2, 3)
+y <- x
+f1(y)
+
+address(x)
+address(y)
+library(pryr)
+
+x[2] <- 10
+address(x)
+address(y)
+
+x <- c(1,2,3)
+ff <- function(x) {
+  a = x
+  f1(a)
+}
+
+ff(x)
+x
+
+x <- c(1,2,3)
+y <- list(b = x)
+ff(x)
+x
+y
+```
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+Rcpp::NumericVector f3(Rcpp::NumericVector x) {
+  
+  Rcpp::NumericVector y = x;
+  y.at(0) = 10;
+  return y;
+}
+
+```
+
+```{r}
+x <- c(1,2,3)
+f3(x)
+x
+```
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <vector>
+#include <algorithm>
+
+// [[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+Rcpp::NumericVector f4(Rcpp::NumericVector x) {
+  
+  Rcpp::NumericVector y = Rcpp::clone(x);
+  y.at(0) = 10;
+  return y;
+}
+
+```
+
+```{r}
+x <- c(1,2,3)
+x
+
+
+x <- rnorm(1e7)
+object_size(x)
+
+largeList = list()
+for(i in 1:100000) {
+  largeList[[i]] = x
+}
+
+sum(sapply(largeList, object_size) / (1024^3))
+#object_size(largeList)
+
+```
